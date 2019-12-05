@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 /**
  * comparing requestAnimationFrame vs setTimeout to animate a div
- * Should using requestAnimationframe for animations taks
+ * Should using requestAnimationframe for animations tasks
  */
 const App: React.FC = () => {
   // setTimeout
