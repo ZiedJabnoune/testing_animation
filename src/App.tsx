@@ -1,64 +1,95 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
+/**
+ * setTimeout = STO
+ * requestAnimationFrame = RAF
+ */
+
+/**
+ * comparing requestAnimationFrame vs setTimeout to animate a div
+ * Should using requestAnimationframe for animations taks
+ */
 const App: React.FC = () => {
-  const [translate, setTranslate] = useState(0);
-  const [translate1, setTranslate1] = useState(0);
+  // setTimeout
+  const [translateSTO, setTranslateSTO] = useState(0);
+  const [idSTO, setIdSTO] = useState<any>(0);
+  const directionSTO = useRef(1);
 
-  const [rAFId, setraAFId] = useState(0);
-  const [timeoutId, settimeoutId] = useState<any>(0);
+  // requestAnimationFrame
+  const [translateRAF, setTranslateRAF] = useState(0);
+  const [idRAF, setIdRAF] = useState(0);
+  const directionRAF = useRef(1);
 
-  const translateWithpx = () => {
-    setTranslate(t => {
+  // mount && unmount
+  useEffect(() => {
+    console.log("mounted");
+    directionSTO.current = 1;
+    directionRAF.current = 1;
+
+    return () => {
+      console.log("unmounted");
+    };
+  }, []);
+
+  // setTimeout animation
+  const translateWithpxSTO = () => {
+    setTranslateSTO(t => {
       let m = 0;
-      if (t < 0) {
-        m = 500;
-      } else if (t > 500) {
-        m = 0;
-      } else {
+      if (t <= 0) {
+        directionSTO.current = 1;
         m = t + 2;
+      } else if (t >= 500) {
+        directionSTO.current = -1;
+        m = t - 2;
+      } else {
+        m = t + directionSTO.current * 2;
       }
       return m;
     });
   };
 
-  const translateWithpx1 = () => {
-    setTranslate1(t => {
+  // (1000/60) => 60 Frame/s (FPS) | display frequency is 60 Hz
+  const loopSTO = () => {
+    translateWithpxSTO();
+    const id = setTimeout(() => loopSTO(), 1000 / 60);
+    setIdSTO(id);
+  };
+
+  // requestAnimationFrame animation
+  const translateWithpxRAF = () => {
+    setTranslateRAF(t => {
       let m = 0;
-      if (t < 0) {
-        m = 500;
-      } else if (t > 500) {
-        m = 0;
-      } else {
+      if (t <= 0) {
+        directionRAF.current = 1;
         m = t + 2;
+      } else if (t >= 500) {
+        directionRAF.current = -1;
+        m = t - 2;
+      } else {
+        m = t + directionRAF.current * 2;
       }
       return m;
     });
   };
 
-  const moveDiv = () => {
-    translateWithpx();
-    ///requestAnimationFrame(() => moveDiv())
-    const id = setTimeout(() => moveDiv(), 14);
-    settimeoutId(id);
+  const loopRAF = () => {
+    translateWithpxRAF();
+    const reqId = requestAnimationFrame(() => loopRAF());
+    setIdRAF(reqId);
   };
 
-  const looping = () => {
-    translateWithpx1();
-    const reqId = requestAnimationFrame(() => looping());
-    setraAFId(reqId);
-  };
-
+  // stop animation
   const stop = () => {
-    cancelAnimationFrame(rAFId);
-    clearTimeout(timeoutId);
+    cancelAnimationFrame(idRAF);
+    clearTimeout(idSTO);
   };
 
   return (
     <div>
       <button
         onClick={() => {
-          moveDiv();
-          looping();
+          loopSTO();
+          loopRAF();
         }}
       >
         move DIV
@@ -80,7 +111,7 @@ const App: React.FC = () => {
           backgroundColor: "red",
           width: "20px",
           height: "20px",
-          transform: `translate(${translate}px)`
+          transform: `translate(${translateSTO}px)`
         }}
       />
 
@@ -92,7 +123,7 @@ const App: React.FC = () => {
           backgroundColor: "red",
           width: "20px",
           height: "20px",
-          transform: `translate(${translate1}px)`
+          transform: `translate(${translateRAF}px)`
         }}
       />
     </div>
